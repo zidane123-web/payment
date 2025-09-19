@@ -13,15 +13,17 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  static const int amountXof = 1500; // Montant à débiter (XOF)
+  static const int amountXof = 200; // Montant à débiter (XOF)
 
-  // TODO: remplace par ta clé publique KKiaPay (sandbox/prod)
+  // ✅ PROD: mets ici TA clé publique "Live" de KKiaPay
   static const String kkiapayPublicKey = 'c2811a3222019d25a6ec80e33c147ae761093089';
-  static const bool useSandbox = true; 
 
-  // ✅ Signature attendue par le SDK: dynamic Function(dynamic, BuildContext)
+  // ✅ PROD: false (ne pas laisser true)
+  static const bool useSandbox = false;
+
+  // Signature attendue par le SDK: dynamic Function(dynamic, BuildContext)
   void _onKkiapayCallback(dynamic response, BuildContext ctx) async {
-    
+    // Cast sécurisé vers Map<String, dynamic>
     final Map<String, dynamic> data = switch (response) {
       Map() => Map<String, dynamic>.from(response as Map),
       _ => <String, dynamic>{},
@@ -44,7 +46,7 @@ class _PaymentPageState extends State<PaymentPage> {
               ? ((data['requestData'] as Map)['amount'] as int? ?? amountXof)
               : amountXof;
 
-      // transactionId peut arriver sous différents noms selon la plateforme
+      // transactionId peut varier selon la plateforme
       final String txId = (data['transactionId'] ??
               data['transaction_id'] ??
               data['transactionID'] ??
@@ -53,7 +55,8 @@ class _PaymentPageState extends State<PaymentPage> {
 
       // Vérifie côté serveur (Cloud Function) et marque "payé"
       try {
-        final callable = FirebaseFunctions.instance.httpsCallable('verifyKkiapay');
+        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
+            .httpsCallable('verifyKkiapay');
         await callable.call(<String, dynamic>{'transactionId': txId});
       } catch (_) {
         // Si ça échoue, le webhook mettra à jour Firestore quand même
@@ -69,7 +72,6 @@ class _PaymentPageState extends State<PaymentPage> {
     }
 
     if (status == PENDING_PAYMENT) {
-      // En attente (ex: mobile money) — le webhook mettra à jour Firestore
       if (mounted) {
         Navigator.of(ctx).pop();
         ScaffoldMessenger.of(context)
@@ -78,7 +80,6 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    // Statut inconnu
     if (mounted) {
       Navigator.of(ctx).maybePop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,20 +93,18 @@ class _PaymentPageState extends State<PaymentPage> {
     final kkiapay = KKiaPay(
       amount: amountXof,
       apikey: kkiapayPublicKey,
-      sandbox: useSandbox,
+      sandbox: useSandbox, // ✅ false en production
       partnerId: user?.uid ?? 'guest',
       countries: const ['BJ'],
       paymentMethods: const ['momo', 'card'],
       reason: 'Abonnement / Paiement',
-      callback: _onKkiapayCallback, // ✅ types compatibles
+      callback: _onKkiapayCallback,
       theme: '#222F5A',
     );
 
     if (kIsWeb) {
-      // Web
       KkiapayFlutterSdkPlatform.instance.pay(kkiapay, context, _onKkiapayCallback);
     } else {
-      // Mobile
       Navigator.push(context, MaterialPageRoute(builder: (context) => kkiapay));
     }
   }
@@ -113,7 +112,7 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Paiement 1 500 XOF')),
+      appBar: AppBar(title: const Text('Paiement 1 500 XOF (PROD)')),
       body: Center(
         child: FilledButton(
           onPressed: _startPayment,
