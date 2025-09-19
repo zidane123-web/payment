@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "983772531918",
+    "project_id": "payment-80037",
+    "storage_bucket": "payment-80037.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983772531918:android:68d69a394006a0dea7949f",
+        "android_client_info": {
+          "package_name": "com.example.payment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAy9JLOgoux1GyAW4Xd1OEtpAMq35jnJTM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
