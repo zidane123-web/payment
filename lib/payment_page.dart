@@ -53,7 +53,8 @@ class _PaymentPageState extends State<PaymentPage> {
 
       // Vérifie côté serveur (Cloud Function) et marque "payé"
       try {
-        final callable = FirebaseFunctions.instance.httpsCallable('verifyKkiapay');
+        final callable = FirebaseFunctions.instanceFor(region: 'europe-west1')
+            .httpsCallable('verifyKkiapay');
         await callable.call(<String, dynamic>{'transactionId': txId});
       } catch (_) {
         // Si ça échoue, le webhook mettra à jour Firestore quand même
