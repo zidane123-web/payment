@@ -1,3 +1,4 @@
+import 'dart:async'; // AJOUT : Nécessaire pour AppLifecycleListener
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -20,6 +21,32 @@ class _PaymentPageState extends State<PaymentPage> {
 
   // ✅ PROD: false (ne pas laisser true)
   static const bool useSandbox = false;
+
+  // AJOUT : Déclaration du listener pour le cycle de vie de l'application
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // AJOUT : Initialisation du listener
+    _listener = AppLifecycleListener(
+      onStateChange: _onStateChanged,
+    );
+  }
+
+  // AJOUT : Méthode pour observer les changements d'état
+  void _onStateChanged(AppLifecycleState state) {
+    debugPrint('AppLifecycleState changed to: $state');
+  }
+
+  @override
+  void dispose() {
+    // AJOUT : Nettoyage du listener pour éviter les fuites de mémoire
+    _listener.dispose();
+    super.dispose();
+  }
+
 
   // Signature attendue par le SDK: dynamic Function(dynamic, BuildContext)
   void _onKkiapayCallback(dynamic response, BuildContext ctx) async {
